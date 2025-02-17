@@ -7,8 +7,8 @@ from sklearn.pipeline import make_pipeline
 #Solo usar esta clase para entrenar en google colab
 
 # Cargar datasets
-df_fake = pd.read_csv("fake_news_dataset.csv")  # Noticias falsas
-df_true = pd.read_csv("true_news_dataset.csv")  # Noticias reales
+df_fake = pd.read_csv("onlyfakes1000.csv")  # Noticias falsas
+df_true = pd.read_csv("onlytrue1000.csv")  # Noticias reales
 
 # Agregar la columna 'label' (0 = fake, 1 = real)
 df_fake["label"] = 0
