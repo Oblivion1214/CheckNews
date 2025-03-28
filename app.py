@@ -15,9 +15,9 @@ except Exception as e:
     print(f"Error al cargar el modelo: {e}")
     modelo = None
 
-# Endpoint para analizar una noticia desde un JSON (por ejemplo, para probar con contenido completo)
-@app.route('/predict_json', methods=['POST'])
-def predict_json():
+# Endpoint para analizar un JSON
+@app.route('/predict', methods=['POST'])
+def predict():
     try:
         data = request.get_json()
         if not data:
@@ -29,6 +29,44 @@ def predict_json():
 
         resultados = []
         for noticia in noticias:
+            # Verificar si la noticia tiene una URL
+            url = noticia.get("url", "")
+            if url:  # Si hay URL, procesar como URL
+                try:
+                    # Procesar la URL con Newspaper3k
+                    article = Article(url)
+                    article.download()
+                    article.parse()
+                    text = article.text
+
+                    if not text:
+                        resultados.append({
+                            "IdNoticia": noticia.get("IdNoticia"),
+                            "error": "No se pudo extraer el texto de la URL"
+                        })
+                        continue
+
+                    prediccion = modelo.predict([text])[0]
+                    resultado = "Noticia falsa" if prediccion == 0 else "Noticia real"
+                    resultados.append({
+                        "IdNoticia": noticia.get("IdNoticia"),
+                        "Titulo": noticia.get("Titulo", ""),
+                        "url": url,
+                        "texto_extraido": text[:200] + "..." if len(text) > 200 else text,
+                        "prediccion": int(prediccion),
+                        "mensaje": resultado
+                    })
+                except Exception as e:
+                    print(f"Error al procesar la noticia con URL {url}: {str(e)}")
+                    resultados.append({
+                        "IdNoticia": noticia.get("IdNoticia"),
+                        "Titulo": noticia.get("Titulo", ""),
+                        "url": url,
+                        "error": f"Error al procesar la URL: {str(e)}"
+                    })
+                continue  # Si procesamos la URL, no necesitamos seguir con el procesamiento de texto crudo
+
+            # Si no hay URL, procesar el texto crudo
             texto = noticia.get("Noticia", "")
             if texto:
                 prediccion = modelo.predict([texto])[0]
@@ -40,46 +78,17 @@ def predict_json():
                     "Prediccion": int(prediccion),
                     "Mensaje": resultado
                 })
+
         return jsonify({"Resultados": resultados})
+
     except Exception as e:
-        print("Error en la ruta predict_json:", str(e))
+        print("Error en la ruta predict:", str(e))
         return jsonify({"error": f"Hubo un error en el servidor: {str(e)}"}), 500
 
-# Nuevo endpoint para analizar la noticia a partir de una URL
-@app.route('/predict_url', methods=['POST'])
-def predict_url():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No se recibió un JSON válido"}), 400
-
-        url = data.get("url", "")
-        if not url:
-            return jsonify({"error": "No se proporcionó una URL"}), 400
-
-        # Extraer el contenido de la noticia usando Newspaper3k
-        article = Article(url)
-        article.download()
-        article.parse()
-        text = article.text
-
-        if not text:
-            return jsonify({"error": "No se pudo extraer el texto de la URL"}), 400
-
-        # Predecir la veracidad usando el modelo
-        prediccion = modelo.predict([text])[0]
-        resultado = "Noticia falsa" if prediccion == 0 else "Noticia real"
-
-        return jsonify({
-            "url": url,
-            "texto_extraido": text[:200] + "...",  # Opcional: mostrar un extracto
-            "prediccion": int(prediccion),
-            "mensaje": resultado
-        })
-    except Exception as e:
-        print("Error en la ruta predict_url:", str(e))
-        return jsonify({"error": f"Hubo un error en el servidor: {str(e)}"}), 500
 
 # Ejecutar la API
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+# curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d @"C:\Users\saulj\Documents\GitHub\CheckNews\noticiaurl.json"
