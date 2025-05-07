@@ -14,8 +14,8 @@ datos = []
 for tema in temas:
     try:
         print(f"Buscando artículos sobre: {tema}")
-        # Buscar hasta 1250 artículos por tema
-        search = Entrez.esearch(db="pubmed", term=f"{tema}[Title/Abstract] AND spanish[Language]", retmax=1250)
+        # Buscar hasta 500 artículos por tema
+        search = Entrez.esearch(db="pubmed", term=f"{tema}[Title/Abstract] AND spanish[Language]", retmax=500)
         search_results = Entrez.read(search)
         id_list = search_results["IdList"]
 
