@@ -91,4 +91,4 @@ if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 
-# curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d @"C:\Users\saulj\Documents\GitHub\CheckNews\noticiaurl.json"
+# curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d @"C:\Users\saulj\Documents\React\CheckNews\noticiaurl.json"
