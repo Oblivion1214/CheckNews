@@ -5,3 +5,5 @@ newspaper3k
 scikit-learn
 nltk
 gunicorn
+lxml_html_clean
+mysql-connector-python
