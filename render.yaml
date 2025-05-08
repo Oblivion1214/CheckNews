@@ -1,9 +1,18 @@
 services:
   - type: web
-    name: checknews
-    runtime: python
-    buildCommand: ""
-    startCommand: gunicorn app:app
+    name: checknews-app
+    env: python
+    plan: free          # el plan gratuito de Render
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11
+      - key: MYSQLHOST
+        value: mysql.railway.internal   # ej. containers-us-west-XX.railway.app
+      - key: MYSQLUSER
+        value: root           # ej. root
+      - key: MYSQLPASSWORD
+        value: tdXfbKTuSRzIwtHZQTprFGdDDaVyJgoE
+      - key: MYSQLDATABASE
+        value: railway     # ej. railway
+      - key: MYSQLPORT
+        value: "3306"

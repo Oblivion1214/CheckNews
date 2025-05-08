@@ -31,7 +31,7 @@ def predict():
         for noticia in noticias:
             # Verificar si la noticia tiene una URL
             url = noticia.get("url", "")
-            if url:  # Si hay URL, procesar como URL
+            if url:
                 try:
                     # Procesar la URL con Newspaper3k
                     article = Article(url)
@@ -46,15 +46,20 @@ def predict():
                         })
                         continue
 
+                    # Obtener predicción y probabilidad
+                    proba = modelo.predict_proba([text])[0]
                     prediccion = modelo.predict([text])[0]
+                    confianza = max(proba)
                     resultado = "Noticia falsa" if prediccion == 0 else "Noticia real"
+
                     resultados.append({
                         "IdNoticia": noticia.get("IdNoticia"),
                         "Titulo": noticia.get("Titulo", ""),
                         "url": url,
                         "texto_extraido": text[:200] + "..." if len(text) > 200 else text,
                         "prediccion": int(prediccion),
-                        "mensaje": resultado
+                        "mensaje": resultado,
+                        "confianza": round(confianza * 100, 2)
                     })
                 except Exception as e:
                     print(f"Error al procesar la noticia con URL {url}: {str(e)}")
@@ -64,27 +69,37 @@ def predict():
                         "url": url,
                         "error": f"Error al procesar la URL: {str(e)}"
                     })
-                continue  # Si procesamos la URL, no necesitamos seguir con el procesamiento de texto crudo
+                continue
 
             # Si no hay URL, procesar el texto crudo
             texto = noticia.get("Noticia", "")
             if texto:
-                prediccion = modelo.predict([texto])[0]
-                resultado = "Noticia falsa" if prediccion == 0 else "Noticia real"
-                resultados.append({
-                    "IdNoticia": noticia["IdNoticia"],
-                    "Titulo": noticia["Titulo"],
-                    "Noticia": texto,
-                    "Prediccion": int(prediccion),
-                    "Mensaje": resultado
-                })
+                try:
+                    proba = modelo.predict_proba([texto])[0]
+                    prediccion = modelo.predict([texto])[0]
+                    confianza = max(proba)
+                    resultado = "Noticia falsa" if prediccion == 0 else "Noticia real"
+
+                    resultados.append({
+                        "IdNoticia": noticia.get("IdNoticia"),
+                        "Titulo": noticia.get("Titulo", ""),
+                        "Noticia": texto,
+                        "Prediccion": int(prediccion),
+                        "Mensaje": resultado,
+                        "Confianza": round(confianza * 100, 2)
+                    })
+                except Exception as e:
+                    resultados.append({
+                        "IdNoticia": noticia.get("IdNoticia"),
+                        "Titulo": noticia.get("Titulo", ""),
+                        "error": f"Error al procesar el texto: {str(e)}"
+                    })
 
         return jsonify({"Resultados": resultados})
 
     except Exception as e:
         print("Error en la ruta predict:", str(e))
         return jsonify({"error": f"Hubo un error en el servidor: {str(e)}"}), 500
-
 
 # Ejecutar la API
 if __name__ == '__main__':
