@@ -2,6 +2,7 @@ import joblib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from newspaper import Article
+import os
 
 # Crear la aplicación Flask
 app = Flask(__name__)
@@ -14,6 +15,11 @@ try:
 except Exception as e:
     print(f"Error al cargar el modelo: {e}")
     modelo = None
+
+# Ruta raíz para comprobar si la API está activa
+@app.route('/')
+def home():
+    return jsonify({"mensaje": "API de detección de fake news activa"})
 
 # Endpoint para analizar un JSON
 @app.route('/predict', methods=['POST'])
@@ -33,7 +39,6 @@ def predict():
             url = noticia.get("url", "")
             if url:
                 try:
-                    # Procesar la URL con Newspaper3k
                     article = Article(url)
                     article.download()
                     article.parse()
@@ -46,7 +51,6 @@ def predict():
                         })
                         continue
 
-                    # Obtener predicción y probabilidad
                     proba = modelo.predict_proba([text])[0]
                     prediccion = modelo.predict([text])[0]
                     confianza = max(proba)
@@ -71,7 +75,7 @@ def predict():
                     })
                 continue
 
-            # Si no hay URL, procesar el texto crudo
+            # Si no hay URL, procesar el texto directamente
             texto = noticia.get("Noticia", "")
             if texto:
                 try:
@@ -84,9 +88,9 @@ def predict():
                         "IdNoticia": noticia.get("IdNoticia"),
                         "Titulo": noticia.get("Titulo", ""),
                         "Noticia": texto,
-                        "Prediccion": int(prediccion),
-                        "Mensaje": resultado,
-                        "Confianza": round(confianza * 100, 2)
+                        "prediccion": int(prediccion),
+                        "mensaje": resultado,
+                        "confianza": round(confianza * 100, 2)
                     })
                 except Exception as e:
                     resultados.append({
@@ -98,12 +102,12 @@ def predict():
         return jsonify({"Resultados": resultados})
 
     except Exception as e:
-        print("Error en la ruta predict:", str(e))
+        print("Error en la ruta /predict:", str(e))
         return jsonify({"error": f"Hubo un error en el servidor: {str(e)}"}), 500
 
-# Ejecutar la API
+# Ejecutar la API (funciona para Render y local)
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 # curl -X POST http://127.0.0.1:5000/predict -H "Content-Type: application/json" -d @"C:\Users\saulj\Documents\React\CheckNews\noticiaurl.json"
