@@ -8,7 +8,7 @@ google-cloud-translate
 joblib
 lxml_html_clean
 mysql-connector-python
-news-paper3k
+newspaper3k
 numpy
 nltk
 openpyxl
