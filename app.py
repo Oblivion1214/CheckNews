@@ -60,10 +60,11 @@ def predict():
                         "IdNoticia": noticia.get("IdNoticia"),
                         "Titulo": noticia.get("Titulo", ""),
                         "url": url,
-                        "texto_extraido": text[:200] + "..." if len(text) > 200 else text,
+                        "texto_extraido": text,
                         "prediccion": int(prediccion),
                         "mensaje": resultado,
-                        "confianza": round(confianza * 100, 2)
+                        "confianza": round(confianza * 100, 2),
+                        "explicacion_confianza": f"El modelo está {round(confianza * 100, 2)}% seguro de que esta noticia es {'falsa' if prediccion == 0 else 'real'}"
                     })
                 except Exception as e:
                     print(f"Error al procesar la noticia con URL {url}: {str(e)}")
