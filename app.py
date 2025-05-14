@@ -64,7 +64,7 @@ def predict():
                         "prediccion": int(prediccion),
                         "mensaje": resultado,
                         "confianza": round(confianza * 100, 2),
-                        "explicacion_confianza": f"El modelo está {round(confianza * 100, 2)}% seguro de que esta noticia es {'falsa' if prediccion == 0 else 'real'}"
+                        "explicacion_confianza": f"El modelo está un {round(confianza * 100, 2)}% seguro de que esta noticia es {'falsa' if prediccion == 0 else 'real'}"
                     })
                 except Exception as e:
                     print(f"Error al procesar la noticia con URL {url}: {str(e)}")
